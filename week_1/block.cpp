@@ -9,11 +9,11 @@ using namespace std;
 class Block {
 
 public:
-  Block(unsigned width, unsigned height, unsigned depth, uint16_t density)
+  Block(uint64_t width, uint64_t height, uint64_t depth, uint64_t density)
       : width(width), height(height), depth(depth), density(density) {}
 
   uint64_t Mass() {
-    int64_t volume = width * depth * height;
+    uint64_t volume = width * depth * height;
 
     uint64_t mass = volume * density;
 
@@ -21,10 +21,10 @@ public:
   };
 
 private:
-  unsigned width;
-  unsigned height;
-  unsigned depth;
-  uint16_t density;
+  uint64_t width;
+  uint64_t height;
+  uint64_t depth;
+  uint64_t density;
 };
 
 int main() {
@@ -37,7 +37,7 @@ int main() {
   uint64_t sum = 0;
   for (unsigned i = 0; i < size; i++) {
 
-    unsigned width, height, depth;
+    uint64_t width, height, depth;
     cin >> width >> height >> depth;
 
     Block new_block = Block(width, depth, height, density);
