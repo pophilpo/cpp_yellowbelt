@@ -1,164 +1,168 @@
 #include <iostream>
-#include <sstream>
-#include <set>
 #include <map>
-#include <cmath>
+#include <ostream>
+#include <random>
+#include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+using namespace std;
 
 template <class T>
-std::ostream& operator << (std::ostream& os, const std::set<T>& s) 
-{
-    os << "{";
-    bool first = true;
-    for (const auto& x : s) 
-    {
-        if (!first) 
-        {
-            os << ", ";
-        }
-        first = false;
-        os << x;
-    }
-    return os << "}";
+ostream &operator<<(ostream &os, const vector<T> &s) {
+	os << "{";
+	bool first = true;
+	for (const auto &x : s) {
+		if (!first) {
+			os << ", ";
+		}
+		first = false;
+		os << x;
+	}
+	return os << "}";
+}
+
+template <class T>
+ostream &operator<<(ostream &os, const set<T> &s) {
+	os << "{";
+	bool first = true;
+	for (const auto &x : s) {
+		if (!first) {
+			os << ", ";
+		}
+		first = false;
+		os << x;
+	}
+	return os << "}";
 }
 
 template <class K, class V>
-std::ostream& operator << (std::ostream& os, const std::map<K, V>& m) 
-{
-    os << "{";
-    bool first = true;
-    for (const auto& kv : m) 
-    {
-        if (!first) 
-        {
-            os << ", ";
-        }
-        first = false;
-        os << kv.first << ": " << kv.second;
-    }
-    return os << "}";
+ostream &operator<<(ostream &os, const map<K, V> &m) {
+	os << "{";
+	bool first = true;
+	for (const auto &kv : m) {
+		if (!first) {
+			os << ", ";
+		}
+		first = false;
+		os << kv.first << ": " << kv.second;
+	}
+	return os << "}";
 }
 
-template<class T, class U>
-void AssertEqual(const T& t, const U& u, const std::string& hint)
-{
-    if (t != u) 
-    {
-        std::ostringstream os;
-        os << " Assertion failed: " << t << " != " << u << " hint: " << hint;
-        throw std::runtime_error(os.str());
-    }
+template <class T, class U>
+void AssertEqual(const T &t, const U &u, const string &hint = {}) {
+	if (t != u) {
+		ostringstream os;
+		os << "Assertion failed: " << t << " != " << u;
+		if (!hint.empty()) {
+			os << " hint: " << hint;
+		}
+		throw runtime_error(os.str());
+	}
 }
-inline void Assert(bool b, const std::string& hint) 
-{
-    AssertEqual(b, true, hint);
-}
-class TestRunner 
-{
+
+void Assert(bool b, const string &hint) { AssertEqual(b, true, hint); }
+
+class TestRunner {
 public:
-    template <class TestFunc>
-    void RunTest(TestFunc func, const std::string& test_name)
-    {
-        try 
-        {
-            func();
-            std::cerr << "PASSED: " << test_name << std::endl;
-        }
-        catch (std::runtime_error & e)
-        {
-            ++fail_count;
-            std::cerr << "FAIL: " << test_name << e.what() << std::endl;
-        }
-    }
+	template <class TestFunc>
+	void RunTest(TestFunc func, const string &test_name) {
+		try {
+			func();
+			cerr << test_name << " OK" << endl;
+		}
+		catch (exception &e) {
+			++fail_count;
+			cerr << test_name << " fail: " << e.what() << endl;
+		}
+		catch (...) {
+			++fail_count;
+			cerr << "Unknown exception caught" << endl;
+		}
+	}
 
-    ~TestRunner() 
-    {
-        if (fail_count > 0) 
-        {
-            std::cerr << "-------------------------------------------" << std::endl;
-            std::cerr << "FAILED (failures = " << fail_count << ")" << std::endl;
-            exit(1);
-        }
-        else
-        {
-            std::cerr << "-------------------------------------------" << std::endl;
-            std::cerr << "OK" << std::endl;
-        }
-    }
+	~TestRunner() {
+		if (fail_count > 0) {
+			cerr << fail_count << " unit tests failed. Terminate" << endl;
+			exit(1);
+		}
+	}
+
 private:
-    int fail_count = 0;
+	int fail_count = 0;
 };
 
+void TestRootCount() {
+	mt19937 gen;
+	uniform_real_distribution<> unif(-10, 10);
 
-int GetDistinctRealRootCount(double a, double b, double c) 
-{
-    double D = std::pow(b, 2) - 4 * a * c;
+	for (auto i = 0; i < 100; ++i) {
+		const auto a = unif(gen);
+		const auto b = unif(gen);
+		const auto c = unif(gen);
 
-    if (a == 0)
-    {
-        if (b != 0)
-        {
-            std::cout << -c / b << std::endl;
-            return 1;
-        }
-    }
-    else
-    if (D == 0)
-    {
-        std::cout << -b / (2 * a) << std::endl;
-        return 1;
-    }
-    else
-    if (D > 0)
-    {
-        double x1 = (-b + sqrt(D)) / (2 * a);
-        double x2 = (-b - sqrt(D)) / (2 * a);
-        std::cout << x1 << " " << x2 << std::endl;
-        return 2;
-    }
-    return 0;
+		const auto count = GetDistinctRealRootCount(a, b, c);
+
+		Assert(count >= 0 && count <= 2,
+			"Quadratic equation has only 0, 1 or 2 real roots.");
+	}
 }
 
+void TestOneRoot() {
+	mt19937 gen;
+	uniform_real_distribution<> unif(-10, 10);
 
-void test_no_roots() 
-{
-    AssertEqual(GetDistinctRealRootCount(1, 0, 1), 0, "test_1_no_roots");
-    AssertEqual(GetDistinctRealRootCount(0, 0, 1), 0, "test_2_no_roots");
-    AssertEqual(GetDistinctRealRootCount(1, 0, 1), 0, "test_3_no_roots");
-}
-void test_linear_equation()
-{
-    AssertEqual(GetDistinctRealRootCount(0, -1, 12), 1, "test_1_linear_equation");
-    AssertEqual(GetDistinctRealRootCount(0, 123, 44), 1, "test_2_linear_equation");
-    AssertEqual(GetDistinctRealRootCount(0, 23, -12), 1, "test_3_linear_equation");
-}
+	for (auto i = 0; i < 100; ++i) {
+		const auto x_1 = unif(gen);
 
-void test_positive_discriminant()
-{
-    AssertEqual(GetDistinctRealRootCount(1, 5, 4), 2, "test_1_positive_discriminant");
-    AssertEqual(GetDistinctRealRootCount(4, 2, -1), 2, "test_2_positive_discriminant");
-    AssertEqual(GetDistinctRealRootCount(-2, 4, -1), 2, "test_3_positive_discriminant");
-}
-void test_zero_discriminant()
-{
-    AssertEqual(GetDistinctRealRootCount(1, 2, 1), 1, "test_1_zero_discriminant");
-    AssertEqual(GetDistinctRealRootCount(2, 4, 2), 1, "test_2_zero_discriminant");
-    AssertEqual(GetDistinctRealRootCount(16, 8, 1), 1, "test_3_zero_discriminant");
+		const auto p = x_1 + x_1;
+		const auto q = x_1 * x_1;
 
-}
-void test_negative_discriminant()
-{
-    AssertEqual(GetDistinctRealRootCount(9, 6, 2), 0, "test_1_negative_discriminant");
-    AssertEqual(GetDistinctRealRootCount(-7, -3, -2), 0, "test_2_negative_discriminant");
-    AssertEqual(GetDistinctRealRootCount(4, 4, 4), 0, "test_3_negative_discriminant");
+		const auto count = GetDistinctRealRootCount(1, p, q);
+		stringstream description;
+		description << showpos << "x^2" << p << "x" << q
+			<< " = 0 has 1 real root.";
+
+		AssertEqual(count, 1, description.str());
+	}
 }
 
-int main() 
-{
-    TestRunner runner;
-    runner.RunTest(test_no_roots, "test_no_roots");
-    runner.RunTest(test_linear_equation, "test_linear_equation");
-    runner.RunTest(test_positive_discriminant, "test_positive_discriminant");
-    runner.RunTest(test_zero_discriminant, "test_zero_discriminant");
-    runner.RunTest(test_negative_discriminant, "test_negative_discriminant");
-    return 0;
+void TestNoRoots() {
+	AssertEqual(GetDistinctRealRootCount(1, 0, 1), 0,
+		"x^2+1 = 0 has 0 real roots.");
+	AssertEqual(GetDistinctRealRootCount(1, 3, 4), 0,
+		"x^2+3x+4 = 0 has 0 real roots.");
+	AssertEqual(GetDistinctRealRootCount(1, -2, 10), 0,
+		"x^2-2x+10 = 0 has 0 real roots.");
+}
+
+void TestLinearEquation() {
+	AssertEqual(GetDistinctRealRootCount(0, 2, 1), 1,
+		"2x+1 = 0 has 1 real root.");
+	AssertEqual(GetDistinctRealRootCount(0, -1, 0), 1,
+		"-x = 0 has 1 real root.");
+	AssertEqual(GetDistinctRealRootCount(0, 120, -10), 1,
+		"120x - 10 = 0 has 1 real root.");
+}
+
+void TestConstant() {
+	AssertEqual(GetDistinctRealRootCount(0, 0, 1), 0,
+		"c = 0, where c = 1 has 0 real roots.");
+	AssertEqual(GetDistinctRealRootCount(0, 0, -10), 0,
+		"c = 0, where c = -10 has 0 real roots.");
+	AssertEqual(GetDistinctRealRootCount(0, 0, 189238910), 0,
+		"c = 0, where c = 189238910 has 0 real roots.");
+}
+
+int main() {
+	TestRunner runner;
+	runner.RunTest(TestRootCount, "TestRootCount");
+	runner.RunTest(TestOneRoot, "TestOneRoot");
+	runner.RunTest(TestNoRoots, "TestNoRoots");
+	runner.RunTest(TestLinearEquation, "TestLinearEquation");
+	runner.RunTest(TestConstant, "TestConstant");
+	return 0;
 }
