@@ -15,35 +15,34 @@ class Figure{
 		virtual double Area() const = 0;
 };
 
-class Triangle : public Figure {
+class Triangle : public Figure
+{
+private:
+    double side_a = 0.0;
+    double side_b = 0.0;
+    double side_c = 0.0;
+public:
+    Triangle(const double& a, const double& b, const double& c) : side_a(a), side_b(b), side_c(c)
+    {
 
-	private:
-		int a_;
-		int b_;
-		int c_;
+    }
 
-	public:
+    std::string Name() const override
+    {
+        return "TRIANGLE";
+    }
 
-		Triangle(const int&a, const int& b, const int& c) : a_(a), b_(b), c_(c) {}
+    double Perimeter() const override
+    {
+        return side_a + side_b + side_c;
+    }
 
-		string Name() const override {
-			return "TRIANGLE";
-		};
-
-		double Area() const override {
-
-			double p2 = (a_ + b_ + c_);
-
-			return sqrt(p2 * (p2 - a_) * (p2 - b_) * (p2 - c_));
-
-		}
-
-		double Perimeter() const override {
-			return a_ + b_ + c_;
-		}
-
+    double Area() const override
+    {
+        double p_2 = (side_a + side_b + side_c) / 2;
+        return std::sqrt(p_2 * (p_2 - side_a) * (p_2 - side_b) * (p_2 - side_c));
+    }
 };
-
 
 class Rect : public Figure {
 	private:
